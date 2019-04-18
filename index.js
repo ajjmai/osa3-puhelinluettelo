@@ -1,5 +1,10 @@
 const express = require("express");
 const app = express();
+const bodyParser = require("body-parser");
+const morgan = require("morgan");
+
+app.use(bodyParser.json());
+app.use(morgan("tiny"));
 
 let persons = [
   {
@@ -45,6 +50,29 @@ app.get("/api/persons/:id", (req, res) => {
   } else {
     res.status(404).end();
   }
+});
+
+const generateId = () => {
+  const newId = Math.floor(Math.random() * Math.floor(100));
+  return newId;
+};
+
+app.post("/api/persons", (req, res) => {
+  const body = req.body;
+  if (!body.name || !body.number) {
+    return res.status(400).json({ error: "content missing" });
+  }
+  if (persons.map(p => p.name).includes(body.name)) {
+    return res.status(400).json({ error: "name must be unique" });
+  }
+
+  const person = {
+    name: body.name,
+    number: body.number,
+    id: generateId()
+  };
+  persons = persons.concat(person);
+  res.json(person);
 });
 
 app.delete("/api/persons/:id", (req, res) => {
